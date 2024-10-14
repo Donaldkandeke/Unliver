@@ -24,7 +24,7 @@ session.mount('https://', adapter)
 @st.cache_data
 def download_kobo_data(api_url, headers):
     try:
-        response = session.get(api_url, headers=headers, timeout=10)
+        response = session.get(api_url, headers=headers, timeout=30)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -73,10 +73,10 @@ if data:
     # Filtres supplémentaires
     st.sidebar.header("Filtres supplémentaires :")
     filters = {
-        "Identification/Province": st.sidebar.multiselect("Province", sorted(df_filtered["Identification/Province"].unique())),
-        "Identification/Commune": st.sidebar.multiselect("Commune", sorted(df_filtered["Identification/Commune"].unique())),
-        "Identification/Adresse_PDV": st.sidebar.multiselect("Avenue", sorted(df_filtered["Identification/Adresse_PDV"].unique())),
-        "Name_Agent": st.sidebar.multiselect("Agent", sorted(df_filtered["Name_Agent"].unique()))
+        "Identification/Province": st.sidebar.multiselect("Province", df_filtered["Identification/Province"].unique()),
+        "Identification/Commune": st.sidebar.multiselect("Commune", df_filtered["Identification/Commune"].unique()),
+        "Identification/Adresse_PDV": st.sidebar.multiselect("Avenue", df_filtered["Identification/Adresse_PDV"].unique()),
+        "Name_Agent": st.sidebar.multiselect("Agent", df_filtered["Name_Agent"].unique())
     }
 
     for col, selection in filters.items():
