@@ -8,6 +8,7 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 import plotly.express as px
 import io
+import os
 
 # Page configuration
 st.set_page_config(page_title="UNILEVER", page_icon="🌍", layout="wide")
@@ -22,9 +23,10 @@ session.mount('https://', adapter)
 
 # Cache data to avoid multiple API calls
 @st.cache_data
-def download_kobo_data(api_url, headers):
+def download_kobo_data(api_url, headers, page=1):
     try:
-        response = session.get(api_url, headers=headers, timeout=10)
+        # Add pagination to handle large datasets
+        response = session.get(f"{api_url}&page={page}", headers=headers, timeout=10)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -32,10 +34,12 @@ def download_kobo_data(api_url, headers):
         return None
 
 # API URL and authentication token
+# Use environment variables for sensitive data
 api_url = "https://kf.kobotoolbox.org/api/v2/assets/amfgmGRANPdTQgh85J7YqK/data/?format=json"
-headers = {"Authorization": "Token fd0239896ad338de0651fe082978bec82cc7dad4"}
+token = os.getenv("KOBO_API_TOKEN", "fd0239896ad338de0651fe082978bec82cc7dad4")  # Replace with your method of handling tokens
+headers = {"Authorization": f"Token {token}"}
 
-# Download KoboCollect data
+# Download KoboCollect data (first page of paginated data)
 data = download_kobo_data(api_url, headers)
 if data:
     st.success("KoboCollect data successfully retrieved!")
@@ -147,9 +151,7 @@ if data:
         if 'Name_Agent' in df_filtered.columns:
             st.subheader("Agent Histogram")
             
-            # Ensure df_filtered is not empty
             if not df_filtered.empty:
-                # Properly use columns for the histogram
                 bar_chart_data = df_filtered['Name_Agent'].value_counts()
                 if not bar_chart_data.empty:
                     fig = px.bar(
@@ -164,3 +166,5 @@ if data:
                     st.warning("No data for the agent histogram.")
             else:
                 st.warning("The filtered DataFrame is empty.")
+else:
+    st.error("Failed to retrieve KoboCollect data.")
